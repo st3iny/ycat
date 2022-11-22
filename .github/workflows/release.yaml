@@ -22,7 +22,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            target/release/ycat
-            LICENSE
+          files: target/release/ycat
           generate_release_notes: true
