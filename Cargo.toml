@@ -7,6 +7,6 @@ edition = "2021"
 gentest = []
 
 [dependencies]
-anyhow = "1.0.66"
+anyhow = "1.0.68"
 serde = "1.0.150"
 serde_yaml = "0.9.14"
