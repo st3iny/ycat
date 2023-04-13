@@ -6,14 +6,27 @@ use anyhow::Result;
 use serde::Deserialize;
 use serde_yaml::Value;
 
-fn main() {
-    if let Err(error) = main_impl(std::env::args().skip(1), &mut stdout()) {
-        eprintln!("{:?}", error);
-        std::process::exit(1);
+fn main() -> Result<()> {
+    for arg in std::env::args().skip(1) {
+        if arg == "--help" || arg == "-h" {
+            print_help();
+            return Ok(());
+        }
     }
+
+    concatenate_yaml_files(std::env::args().skip(1), &mut stdout())
 }
 
-fn main_impl<P: AsRef<Path>>(paths: impl Iterator<Item = P>, out: &mut impl Write) -> Result<()> {
+fn print_help() {
+    println!("Concatenate multiple YAML files into a single YAML stream and write it to stdout.");
+    println!();
+    println!("Usage: {} FILE [FILE ...]", env!("CARGO_BIN_NAME"));
+}
+
+fn concatenate_yaml_files<P>(paths: impl Iterator<Item = P>, out: &mut impl Write) -> Result<()>
+where
+    P: AsRef<Path>,
+{
     for path in paths {
         let mut file = File::open(path)?;
         for document in serde_yaml::Deserializer::from_reader(&mut file) {
@@ -46,7 +59,7 @@ mod test {
 
     fn test_actual_expected(paths: impl Iterator<Item = &'static str>, expected: impl AsRef<Path>) {
         let mut buf = Vec::new();
-        main_impl(paths, &mut buf).unwrap();
+        concatenate_yaml_files(paths, &mut buf).unwrap();
 
         #[cfg(feature = "gentest")]
         if !expected.as_ref().exists() {
@@ -69,7 +82,7 @@ mod test {
     #[test]
     fn test_no_paths() {
         let mut buf = Vec::new();
-        main_impl(std::iter::empty::<&'static str>(), &mut buf).unwrap();
+        concatenate_yaml_files(std::iter::empty::<&'static str>(), &mut buf).unwrap();
         assert!(buf.is_empty());
     }
 
