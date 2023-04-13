@@ -75,13 +75,7 @@ mod test {
 
     #[test]
     fn test_empty_file() {
-        let mut buf = Vec::new();
-        let res = main_impl([YAML_EMPTY].into_iter(), &mut buf);
-        assert!(res.is_err());
-        assert!(res
-            .unwrap_err()
-            .to_string()
-            .contains("EOF while parsing a value"));
+        test_actual_expected([YAML_EMPTY].into_iter(), "testdata.out/test_empty.yaml");
     }
 
     #[test]
