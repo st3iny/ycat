@@ -9,4 +9,4 @@ gentest = []
 [dependencies]
 anyhow = "1.0.78"
 serde = "1.0.193"
-serde_yaml = "0.9.29"
+serde_yaml = "0.9.30"
