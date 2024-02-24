@@ -8,5 +8,3 @@ gentest = []
 
 [dependencies]
 anyhow = "1.0.80"
-serde = "1.0.196"
-serde_yaml = "0.9.32"

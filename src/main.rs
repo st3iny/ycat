@@ -1,10 +1,8 @@
-use std::io::Write;
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::{fs::File, io::stdout};
 
 use anyhow::Result;
-use serde::Deserialize;
-use serde_yaml::Value;
 
 fn main() -> Result<()> {
     for arg in std::env::args().skip(1) {
@@ -28,16 +26,34 @@ where
     P: AsRef<Path>,
 {
     for path in paths {
-        let mut file = File::open(path)?;
-        for document in serde_yaml::Deserializer::from_reader(&mut file) {
-            let value = Value::deserialize(document)?;
-            if value.is_null() {
+        let mut empty = true;
+        let mut starts_with_sep = false;
+
+        let file = File::open(&path)?;
+        let lines = BufReader::new(file).lines();
+        for line in lines {
+            let line = line?;
+            if line.trim().is_empty() {
                 continue;
             }
 
-            writeln!(out, "---")?;
-            serde_yaml::to_writer(&mut *out, &value)?;
+            if line == "---" {
+                starts_with_sep = true;
+            }
+
+            empty = false;
+            break;
         }
+
+        if empty {
+            continue;
+        }
+
+        let mut file = File::open(path)?;
+        if !starts_with_sep {
+            writeln!(out, "---")?;
+        }
+        std::io::copy(&mut file, out)?;
     }
     Ok(())
 }
@@ -67,15 +83,8 @@ mod test {
             file.write_all(&buf).unwrap();
         }
 
-        let actual: Vec<Value> = serde_yaml::Deserializer::from_slice(&buf)
-            .filter_map(|document| Value::deserialize(document).ok())
-            .collect();
-
+        let actual = String::from_utf8(buf).unwrap();
         let expected = read_to_string(expected).unwrap();
-        let expected: Vec<Value> = serde_yaml::Deserializer::from_str(&expected)
-            .filter_map(|document| Value::deserialize(document).ok())
-            .collect();
-
         assert_eq!(actual, expected);
     }
 
@@ -88,7 +97,10 @@ mod test {
 
     #[test]
     fn test_empty_file() {
-        test_actual_expected([YAML_EMPTY].into_iter(), "testdata.out/test_empty.yaml");
+        test_actual_expected(
+            [YAML_EMPTY].into_iter(),
+            "testdata.out/test_empty_file.yaml",
+        );
     }
 
     #[test]
@@ -124,7 +136,7 @@ mod test {
     fn test_empty_and_regular() {
         test_actual_expected(
             [YAML_EMPTY_1_SEP, YAML_REGULAR].into_iter(),
-            "testdata.out/test_regular_and_empty.yaml",
+            "testdata.out/test_empty_and_regular.yaml",
         );
     }
 
