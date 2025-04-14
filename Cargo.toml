@@ -9,4 +9,4 @@ license = "GPL-3.0-only"
 gentest = []
 
 [dependencies]
-anyhow = "1.0.97"
+anyhow = "1.0.98"
