@@ -20,7 +20,7 @@ jobs:
         run: cargo test --verbose --release
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: target/release/ycat
           generate_release_notes: true
